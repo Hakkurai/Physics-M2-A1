@@ -2,40 +2,40 @@ using UnityEngine;
 
 public class Moon : MonoBehaviour
 {
-    public Rigidbody rb;
-    public PlanetBase planet;
-    public float orbitSpeed = 5f;
-    public float stabilizationSpeed = 2f;
+    private Rigidbody rb;
+    public Transform planet;
+    public float orbitSpeed = 5f;  // Controls how fast the moon orbits
 
-    private void Start()
+    void Start()
     {
         rb = GetComponent<Rigidbody>();
+        rb.useGravity = false;  // Prevent Unity gravity from interfering
+
+        // Give the moon an initial orbit velocity
+        Vector3 direction = (transform.position - planet.position).normalized;
+        Vector3 perpendicularDirection = Vector3.Cross(direction, Vector3.up).normalized;
+
+        rb.linearVelocity = perpendicularDirection * orbitSpeed;
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        if (planet != null)
-        {
-            // Apply gravity force from the planet
-            planet.ApplyGravity(this);
+        ApplyGravity();
+    }
 
-            // Orbit around the planet
-            Vector3 orbitDirection = Vector3.Cross(transform.position - planet.transform.position, Vector3.up);
-            rb.linearVelocity = orbitDirection.normalized * orbitSpeed;
+    void ApplyGravity()
+    {
+        if (planet == null) return;
 
-            // Stabilize orbit using Lerp
-            transform.position = Vector3.Lerp(transform.position, GetStableOrbitPosition(), Time.deltaTime * stabilizationSpeed);
-        }
+        Vector3 direction = (planet.position - transform.position).normalized;
+        float distance = Vector3.Distance(planet.position, transform.position);
+        float gravityStrength = 100f / Mathf.Pow(distance, 2); // Inverse square law
+
+        rb.AddForce(direction * gravityStrength, ForceMode.Acceleration);
     }
 
     public void ApplyForce(Vector3 force)
     {
         rb.AddForce(force, ForceMode.Acceleration);
-    }
-
-    private Vector3 GetStableOrbitPosition()
-    {
-        Vector3 direction = (transform.position - planet.transform.position).normalized;
-        return planet.transform.position + direction * 5f; // Set a stable orbit radius
     }
 }
