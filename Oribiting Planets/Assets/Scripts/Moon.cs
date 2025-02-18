@@ -3,39 +3,42 @@ using UnityEngine;
 public class Moon : MonoBehaviour
 {
     private Rigidbody rb;
-    public Transform planet;
-    public float orbitSpeed = 5f;  // Controls how fast the moon orbits
+    public PlanetBase planet;  // Assign this in Unity Inspector
+    public float orbitSpeed = 5f;  // Adjust to balance orbit
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.useGravity = false;  // Prevent Unity gravity from interfering
+        rb.useGravity = false;  // Prevent Unity�s built-in gravity
 
-        // Give the moon an initial orbit velocity
-        Vector3 direction = (transform.position - planet.position).normalized;
-        Vector3 perpendicularDirection = Vector3.Cross(direction, Vector3.up).normalized;
+        planet.RegisterMoon(this); // Register moon to the planet
 
-        rb.linearVelocity = perpendicularDirection * orbitSpeed;
+        // Set initial velocity perpendicular to planet's position
+        Vector3 direction = (transform.position - planet.transform.position).normalized;
+        Vector3 orbitDirection = Vector3.Cross(direction, Vector3.up).normalized;
+
+        rb.linearVelocity = orbitDirection * orbitSpeed;
     }
 
     void FixedUpdate()
     {
-        ApplyGravity();
-    }
-
-    void ApplyGravity()
-    {
-        if (planet == null) return;
-
-        Vector3 direction = (planet.position - transform.position).normalized;
-        float distance = Vector3.Distance(planet.position, transform.position);
-        float gravityStrength = 100f / Mathf.Pow(distance, 2); // Inverse square law
-
-        rb.AddForce(direction * gravityStrength, ForceMode.Acceleration);
+        if (planet != null)
+        {
+            planet.ApplyGravity(); // Planet applies gravity
+            StabilizeOrbit();
+        }
     }
 
     public void ApplyForce(Vector3 force)
     {
         rb.AddForce(force, ForceMode.Acceleration);
+    }
+
+    void StabilizeOrbit()
+    {
+        // Ensure the moon's movement is balanced between falling and forward movement
+        Vector3 toPlanet = (planet.transform.position - transform.position).normalized;
+        Vector3 velocityDirection = rb.linearVelocity.normalized;
+        rb.linearVelocity = Vector3.Lerp(velocityDirection, Vector3.Cross(toPlanet, Vector3.up), Time.deltaTime * 0.1f) * orbitSpeed;
     }
 }

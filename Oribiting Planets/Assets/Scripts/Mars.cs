@@ -1,14 +1,24 @@
 using UnityEngine;
+
 public class Mars : PlanetBase
 {
-    private void Start()
+    void Start()
     {
-        gravity = 3.71f; // Mars' gravity
+        gravityStrength = 50f; // Stronger gravity
     }
 
-    public override void ApplyGravity(Moon moon)
+    public override void ApplyGravity()
     {
-        Vector3 direction = (transform.position - moon.transform.position).normalized;
-        moon.ApplyForce(direction * gravity);
+        foreach (Moon moon in moons)
+        {
+            if (moon != null)
+            {
+                Vector3 direction = (transform.position - moon.transform.position).normalized;
+                float distance = Vector3.Distance(transform.position, moon.transform.position);
+                float gravityForce = (mass * gravityStrength) / Mathf.Pow(distance, 2); // Newton's Law
+
+                moon.ApplyForce(direction * gravityForce);
+            }
+        }
     }
 }

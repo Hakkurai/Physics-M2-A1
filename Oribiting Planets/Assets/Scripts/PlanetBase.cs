@@ -1,12 +1,19 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 public abstract class PlanetBase : MonoBehaviour
 {
-    public float mass = 1000f; // Mass of the planet
-    public float gravity = 9.81f; // Gravitational force
-    public List<Moon> moons = new List<Moon>(); // List of moons
+    public float mass = 1000f; // Affects gravity
+    public float gravityStrength = 100f; // Higher values pull moons more
 
-    // Abstract method for applying gravity
-    public abstract void ApplyGravity(Moon moon);
+    // List of moons affected by this planet
+    protected List<Moon> moons = new List<Moon>();
+
+    public abstract void ApplyGravity();
+
+    public void RegisterMoon(Moon moon)
+    {
+        if (!moons.Contains(moon))
+            moons.Add(moon);
+    }
 }
